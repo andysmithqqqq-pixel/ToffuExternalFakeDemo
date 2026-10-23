@@ -4,6 +4,182 @@
 :root{--bg:#0f0f10;--fg:#d6d6d6;--card:#151516;--bd:#232325;--muted:#777;--sub:#a0a0a0;--btn:#1d1d1f;--btnbd:#2c2c2f;--accent:#a8d5ba;--accent-text:#14201a;--ink:#a8d5ba;--modal:#171718;--modalbd:#2a2a2c;--mtext:#9a9a9f;--overlay:rgba(0,0,0,.55);--err:#d99a9a;--log:#8f8f94}
 :root[data-theme=light]{--bg:#f4f4f5;--fg:#222226;--card:#fff;--bd:#e3e3e6;--muted:#8a8a90;--sub:#66666c;--btn:#f0f0f2;--btnbd:#dcdce0;--accent:#a8d5ba;--accent-text:#14201a;--ink:#4f8a68;--modal:#fff;--modalbd:#e3e3e6;--mtext:#66666c;--overlay:rgba(0,0,0,.35);--err:#c26a6a;--log:#66666c}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}html,body{height:100%;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,sans-serif}.app{height:100dvh;max-width:480px;margin:auto;display:flex;flex-direction:column}header{padding:18px}h1{font-size:21px;font-weight:600}header div{color:var(--muted);font-size:13px}main{padding:0 14px;flex:1;min-height:0;display:flex;flex-direction:column}.card,.notice,.list{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:12px}.notice{font-size:13px;color:var(--sub)}.kv{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--bd);font-size:14px}.kv:last-child{border:0}.kv span:first-child{color:var(--muted)}button{font:inherit;color:var(--fg);background:var(--btn);border:1px solid var(--btnbd);border-radius:8px;padding:9px 12px}.primary{width:100%;padding:13px;background:var(--accent);color:var(--accent-text);border:0;font-weight:600;border-radius:10px}.bottom{margin-top:auto;padding-bottom:12px}.status{display:none;text-align:center;color:var(--log);font-size:12px;margin-top:8px}nav{display:flex;border-top:1px solid var(--bd);background:var(--card)}nav button{flex:1;border:0;border-radius:0;background:none;color:var(--muted);font-size:11px;padding:12px 0}nav button.active{color:var(--ink)}.screen{display:none;flex:1;min-height:0}.screen.active{display:flex;flex-direction:column}.logbox{font:12px/1.7 monospace;overflow:auto;white-space:pre-wrap}.cfgrow,.setting{padding:10px 0;border-bottom:1px solid var(--bd);display:flex;justify-content:space-between;gap:8px;align-items:center}.ov{position:fixed;inset:0;background:var(--overlay);display:none;align-items:center;justify-content:center;padding:20px;z-index:5}.modal{background:var(--modal);border:1px solid var(--modalbd);border-radius:16px;padding:28px 24px;width:100%;max-width:320px;text-align:center}.modal svg{width:64px;height:64px;stroke-width:2;fill:none;margin-bottom:14px}.modal.err svg{stroke:var(--err)}.modal.ok svg{stroke:var(--ink)}.modal h2{font-size:18px;margin-bottom:10px}.modal p{color:var(--mtext);font-size:13.5px;line-height:1.8}.modal button{margin-top:18px;width:100%}.actions{display:flex;gap:8px}.actions button{flex:1}
+
+#inputShade{display:none;position:fixed;inset:0;z-index:9999;background:#000b;
+align-items:center;justify-content:center;padding:22px}
+#inputCard{width:100%;max-width:380px;background:var(--card,#1b1b22);
+border:1px solid #64547e;border-radius:18px;padding:20px;box-sizing:border-box;
+box-shadow:0 18px 60px #0009}
+#inputCard h3{margin:0 0 14px}
+#inputName{width:100%;box-sizing:border-box;padding:13px;border-radius:10px;
+border:1px solid #62566f;background:#111116;color:inherit;font-size:16px}
+#inputActions{display:flex;gap:10px;margin-top:14px}
+#inputActions button{flex:1;padding:12px;border-radius:10px}
+.cfgrow{display:flex;align-items:center;gap:8px;padding:10px;margin:8px 0;
+border:1px solid #45404f;border-radius:12px;background:#1b1b22}
+.cfgrow span{flex:1;min-width:0;overflow-wrap:anywhere;cursor:pointer}
+.cfgrow button{border-radius:9px;padding:8px 12px}
+button{cursor:pointer}
+
+
+/* Toffu UI refresh */
+:root {
+  color-scheme: dark;
+  --bg: #0b0a10;
+  --surface: #15131d;
+  --surface2: #201b2b;
+  --line: #393047;
+  --accent: #c7a7ff;
+  --accent2: #9064e8;
+  --text: #f5f0ff;
+  --muted: #aaa1bb;
+  --radius: 16px;
+}
+* { box-sizing: border-box; }
+html { min-height: 100%; background: var(--bg); }
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse at 50% -15%, #39254f 0, transparent 48%),
+    var(--bg);
+  color: var(--text);
+  font-family: Inter, Roboto, "Segoe UI", sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+}
+button, input, select, textarea { font: inherit; }
+button {
+  color: var(--text);
+  background: linear-gradient(145deg, #30263e, #211b2b);
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  padding: 10px 14px;
+  transition: background .16s, border-color .16s, transform .16s;
+  -webkit-tap-highlight-color: transparent;
+}
+button:active { transform: scale(.97); }
+button:hover { border-color: var(--accent2); }
+button:disabled { opacity: .45; }
+input:not([type=checkbox]):not([type=range]),
+select, textarea {
+  width: 100%;
+  min-height: 42px;
+  color: var(--text);
+  background: #100e16;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  padding: 10px 12px;
+  outline: none;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: var(--accent2);
+  box-shadow: 0 0 0 3px #9064e82a;
+}
+input[type=range] { width: 100%; accent-color: var(--accent2); }
+input[type=checkbox] { accent-color: var(--accent2); }
+h1, h2, h3 { color: var(--text); line-height: 1.25; }
+h1 { font-size: clamp(23px, 6vw, 31px); letter-spacing: -.6px; }
+h2 { font-size: 20px; }
+h3 { font-size: 16px; }
+.card, .panel, .section, .cfgrow, .setting, .logbox {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.card, .panel, .section {
+  background: linear-gradient(150deg, #1c1825, #121018);
+  padding: 15px;
+}
+.cfgrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+  padding: 10px;
+  background: var(--surface);
+}
+.cfgrow span {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  padding: 5px;
+}
+.cfgrow button { flex-shrink: 0; }
+.setting {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 8px 0;
+  padding: 12px;
+  background: var(--surface);
+}
+.setting input, .setting select { max-width: 52%; }
+nav, .tabs, .navbar {
+  gap: 7px;
+}
+nav button, .tabs button, .navbar button {
+  flex: 1;
+  min-width: 0;
+}
+#status {
+  border: 1px solid #5c4779;
+  background: #21182f;
+  color: var(--accent);
+  border-radius: 12px;
+  padding: 11px 13px;
+}
+#logbox {
+  padding: 12px;
+  background: #0e0c13;
+  color: #c9bbdf;
+  overflow-wrap: anywhere;
+}
+#inputShade {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  align-items: center;
+  justify-content: center;
+  padding: 22px;
+  background: #05040bdc;
+  backdrop-filter: blur(7px);
+}
+#inputCard {
+  width: 100%;
+  max-width: 390px;
+  padding: 22px;
+  border: 1px solid #625078;
+  border-radius: 20px;
+  background: linear-gradient(145deg, #211b2c, #121018);
+  box-shadow: 0 22px 80px #000b;
+}
+#inputCard h3 { margin: 0 0 16px; }
+#inputName { width: 100%; }
+#inputActions { display: flex; gap: 10px; margin-top: 16px; }
+#inputActions button { flex: 1; min-height: 44px; }
+#inputSave {
+  color: #fff;
+  background: linear-gradient(135deg, #8052d4, #56369b);
+  border-color: #a17be5;
+}
+#inputCancel { background: #201b29; }
+#ov {
+  background: #05040bdc;
+  backdrop-filter: blur(6px);
+}
+.modal {
+  border: 1px solid #625078;
+  border-radius: 18px;
+  background: #17131f;
+  box-shadow: 0 20px 70px #000a;
+}
+@media (max-width: 380px) {
+  .cfgrow { gap: 5px; padding: 7px; }
+  .cfgrow button { padding: 8px; }
+}
+
 </style></head><body><div class="app"><header><h1>Toffu External</h1><div>External loader · Matreshka RP</div></header><main>
 <section class="screen active" id="home"><div class="notice"><b>Нужны root-права.</b> Без них запуск оверлея ограничен.</div><div class="card"><div class="kv"><span>Игра</span><span>Matreshka RP</span></div><div class="kv"><span>Root</span><span id="rootState">не проверен</span></div><div class="kv"><span>Телефон</span><span id="model">…</span></div><div class="kv"><span>Android</span><span id="android">…</span></div><div class="kv"><span>Конфиг</span><span id="selectedCfg">нет</span></div></div><div class="bottom"><div class="actions"><button id="start" class="primary">Запустить</button><button id="stop">Остановить</button></div><div class="status" id="status">Проверка запуска…</div></div></section>
 <section class="screen" id="logs"><div class="list logbox" id="logbox">Логов нет</div></section>
@@ -16,7 +192,7 @@ const $=s=>document.querySelector(s), logs=[], cfgs=[]; let running=false, setti
 function persist(){try{localStorage.setItem('toffu_settings',JSON.stringify(settings));localStorage.setItem('toffu_cfgs',JSON.stringify(cfgs))}catch(e){}}
 try{settings={...settings,...JSON.parse(localStorage.getItem('toffu_settings')||'{}')};cfgs.push(...JSON.parse(localStorage.getItem('toffu_cfgs')||'[]'))}catch(e){}
 function theme(){document.documentElement.dataset.theme=settings.theme;$('#theme').value=settings.theme} theme();
-function addLog(s){let t=new Date().toLocaleTimeString();logs.push((settings.ts?'['+t+'] ':'')+s);$('#logbox').textContent=logs.join('\\n');$('#logbox').scrollTop=$('#logbox').scrollHeight}
+function addLog(s){let t=new Date().toLocaleTimeString();logs.push((settings.ts?'['+t+'] ':'')+s);$('#logbox').textContent=logs.join('\n');$('#logbox').scrollTop=$('#logbox').scrollHeight}
 function modal(title,body,ok=false){$('#modal').className='modal '+(ok?'ok':'err');$('#mt').textContent=title;$('#info').textContent=body;$('#ico').innerHTML=ok?'<path d="M4 12L10 18L20 6"/>':'<path d="M12 3L22 20H2L12 3Z"/><path d="M12 10V14"/><circle cx="12" cy="17" r="1"/>';$('#ov').style.display='flex'}
 function closeModal(){$('#ov').style.display='none';$('#status').style.display='none';$('#start').disabled=false;running=false}
 $('#close').onclick=closeModal;
@@ -31,16 +207,55 @@ addLog('Пакет игры найден');ToffuNative.requestOverlay();addLog('
 };
 $('#stop').onclick=()=>{if(native())ToffuNative.stopOverlay();addLog('Оверлей остановлен');toast('Оверлей остановлен')};
 function toast(s){$('#status').textContent=s;$('#status').style.display='block';setTimeout(()=>$('#status').style.display='none',2200)}
-function drawCfgs(){let box=$('#cfglist');box.innerHTML='';cfgs.forEach((c,i)=>{let row=document.createElement('div');row.className='cfgrow';let n=document.createElement('span');n.textContent=c.name+(i===selected?' ✓':'');n.onclick=()=>{selected=i;$('#selectedCfg').textContent=c.name;drawCfgs()};let rename=document.createElement('button');rename.textContent='Имя';rename.onclick=()=>{let v=prompt('Имя конфига',c.name);if(v&&v.trim()){c.name=v.trim();persist();drawCfgs()}};let del=document.createElement('button');del.textContent='×';del.onclick=()=>{cfgs.splice(i,1);if(selected===i)selected=-1;persist();drawCfgs()};row.append(n,rename,del);box.append(row)});if(!cfgs.length)box.textContent='Нет конфигов'}
-$('#newcfg').onclick=()=>{let name=prompt('Название конфига');if(!name||!name.trim())return;cfgs.push({name:name.trim(),data:JSON.stringify({created:new Date().toISOString(),settings})});persist();drawCfgs();$('#selectedCfg').textContent=name.trim()};
+
+function askName(title, initial=''){
+  return new Promise(resolve=>{
+    const shade=$('#inputShade'), input=$('#inputName');
+    $('#inputTitle').textContent=title;
+    input.value=initial;
+    shade.style.display='flex';
+    const finish=value=>{
+      shade.style.display='none';
+      $('#inputSave').removeEventListener('click',save);
+      $('#inputCancel').removeEventListener('click',cancel);
+      shade.removeEventListener('click',outside);
+      input.removeEventListener('keydown',key);
+      resolve(value);
+    };
+    const save=()=>finish(input.value.trim()||null);
+    const cancel=()=>finish(null);
+    const outside=e=>{if(e.target===shade)cancel()};
+    const key=e=>{if(e.key==='Enter')save();if(e.key==='Escape')cancel()};
+    $('#inputSave').addEventListener('click',save);
+    $('#inputCancel').addEventListener('click',cancel);
+    shade.addEventListener('click',outside);
+    input.addEventListener('keydown',key);
+    setTimeout(()=>input.focus(),50);
+  });
+}
+
+function drawCfgs(){let box=$('#cfglist');box.innerHTML='';cfgs.forEach((c,i)=>{let row=document.createElement('div');row.className='cfgrow';let n=document.createElement('span');n.textContent=c.name+(i===selected?' ✓':'');n.onclick=()=>{selected=i;$('#selectedCfg').textContent=c.name;drawCfgs()};let rename=document.createElement('button');rename.textContent='Имя';rename.onclick=async()=>{let v=await askName('Переименовать конфиг',c.name);if(v){c.name=v;persist();drawCfgs()}};let del=document.createElement('button');del.textContent='×';del.onclick=()=>{cfgs.splice(i,1);if(selected===i)selected=-1;persist();drawCfgs()};row.append(n,rename,del);box.append(row)});if(!cfgs.length)box.textContent='Нет конфигов'}
+$('#newcfg').onclick=async()=>{let name=await askName('Новый конфиг');if(!name)return;cfgs.push({name,data:JSON.stringify({created:new Date().toISOString(),settings})});selected=cfgs.length-1;persist();drawCfgs();$('#selectedCfg').textContent=name};
 $('#importcfg').onclick=()=>$('#file').click();
-$('#file').onchange=async e=>{for(const f of e.target.files){try{let data=await f.text();let j=JSON.parse(data);if(j&&typeof j==='object'&&!Array.isArray(j))cfgs.push({name:f.name.replace(/\\.tcf$/i,''),data});else toast('Неверный .tcf')}catch(_){toast('Неверный .tcf')}}persist();drawCfgs();e.target.value=''};
+$('#file').onchange=async e=>{for(const f of e.target.files){try{let data=await f.text();let j=JSON.parse(data);if(j&&typeof j==='object'&&!Array.isArray(j))cfgs.push({name:f.name.replace(/\.tcf$/i,''),data});else toast('Неверный .tcf')}catch(_){toast('Неверный .tcf')}}persist();drawCfgs();e.target.value=''};
 $('#theme').onchange=()=>{settings.theme=$('#theme').value;theme();persist()};
 $('#timestamps').onchange=()=>{settings.ts=$('#timestamps').checked;persist()};
-$('#speed').onchange=()=>{settings.speed=+$(' #speed'.trim()).value;persist()};
+$('#speed').onchange=()=>{settings.speed=+$('#speed').value;persist()};
 $('#pillsize').oninput=()=>{settings.pillsize=+$('#pillsize').value;persist()};
 $('#reset').onclick=()=>{settings={theme:'dark',ts:true,speed:1,pillsize:100};persist();theme();$('#timestamps').checked=true;$('#speed').value='1';$('#pillsize').value=100;toast('Настройки сброшены')};
 function drawCfgsInitial(){drawCfgs();$('#timestamps').checked=settings.ts;$('#speed').value=String(settings.speed);$('#pillsize').value=settings.pillsize}
 drawCfgsInitial();
 window.nativeResume=()=>{deviceInfo()};
-</script></body></html>
+</script>
+<div id="inputShade" role="dialog" aria-modal="true">
+  <div id="inputCard">
+    <h3 id="inputTitle">Название</h3>
+    <input id="inputName" maxlength="64" autocomplete="off">
+    <div id="inputActions">
+      <button type="button" id="inputCancel">Отмена</button>
+      <button type="button" id="inputSave">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+</body></html>
