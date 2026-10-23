@@ -2,243 +2,408 @@ package com.toffu.external;
 
 import android.app.Service;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
+import android.provider.Settings;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
+import android.widget.SeekBar;
 import android.widget.TextView;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 public class OverlayService extends Service {
+    public static volatile boolean running = false;
+    static final String PREFS = "toffu";
+    private static final int ACCENT = 0xFFA8D5BA;
+
+    private SharedPreferences sp;
     private WindowManager wm;
-    private View pill, panel;
-    private WindowManager.LayoutParams pillParams, panelParams;
-    private boolean expanded = false;
+    private float density;
+    private final Handler h = new Handler(Looper.getMainLooper());
+    private LinearLayout pill;
+    private TextView pillTop, pillBottom;
+    private WindowManager.LayoutParams pillLp, panelLp;
+    private LinearLayout panel, content;
+    private final TextView[] tabViews = new TextView[4];
+    private final String[] tabNames = {"Combat", "World", "Misc", "Configs"};
+    private String tab = "Combat";
+    private final Runnable tick = new Runnable() {
+        @Override public void run() { updateClock(); h.postDelayed(this, 20000); }
+    };
 
     @Override public void onCreate() {
         super.onCreate();
-        wm = (WindowManager)getSystemService(WINDOW_SERVICE);
-        createPill();
+        sp = getSharedPreferences(PREFS, MODE_PRIVATE);
+        density = getResources().getDisplayMetrics().density;
+        if (Build.VERSION.SDK_INT >= 23 && !Settings.canDrawOverlays(this)) { stopSelf(); return; }
+        wm = (WindowManager) getSystemService(WINDOW_SERVICE);
+        try {
+            createPill();
+            running = true;
+            h.postDelayed(tick, 20000);
+        } catch (Exception e) { stopSelf(); }
     }
 
-    private GradientDrawable bg(int color, int stroke) {
-        GradientDrawable d = new GradientDrawable();
-        d.setColor(color); d.setCornerRadius(18);
-        d.setStroke(1, stroke); return d;
-    }
-    private TextView label(String text, int size) {
-        TextView t = new TextView(this);
-        t.setText(text); t.setTextColor(Color.WHITE); t.setTextSize(size);
-        t.setTypeface(Typeface.DEFAULT, Typeface.NORMAL);
-        t.setPadding(12, 7, 12, 7);
-        return t;
+    private int dp(float v) { return (int) (v * density + 0.5f); }
+    private float scale() { return sp.getInt("pill_size", 100) / 100f; }
+    private int panelBg() {
+        int a = Math.round(sp.getInt("menu_alpha", 94) * 255 / 100f);
+        return (a << 24) | 0x161619;
     }
     private int overlayType() {
-        return Build.VERSION.SDK_INT >= 26 ? WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+        return Build.VERSION.SDK_INT >= 26
+            ? WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
             : WindowManager.LayoutParams.TYPE_PHONE;
     }
-
-    private void applyOverlaySettings(Intent intent) {
-        if (intent == null) return;
-        int size = intent.getIntExtra("pillsize", 100);
-        size = Math.max(70, Math.min(150, size));
-        float scale = size / 100f;
-        if (pill != null) {
-            pill.setScaleX(scale);
-            pill.setScaleY(scale);
-        }
+    private GradientDrawable bg(int fill, int stroke, float r) {
+        GradientDrawable d = new GradientDrawable();
+        d.setColor(fill);
+        d.setCornerRadius(dp(r));
+        d.setStroke(Math.max(1, dp(1)), stroke);
+        return d;
+    }
+    private TextView label(String t, float size, int color) {
+        TextView v = new TextView(this);
+        v.setText(t);
+        v.setTextSize(size);
+        v.setTextColor(color);
+        return v;
     }
 
+    /* ---------- плашка ---------- */
     private void createPill() {
-        LinearLayout box = new LinearLayout(this);
-        box.setOrientation(LinearLayout.VERTICAL);
-        box.setBackground(bg(0xF019191C, 0xFF37343E));
-        TextView top = label("ϟ Toffu  |  Матрёшка РП  |  ◷ " + new java.text.SimpleDateFormat("HH:mm").format(new java.util.Date()), 11);
-        TextView bottom = label("|  External", 10);
-        bottom.setTextColor(0xFFC8B6FF);
-        box.addView(top); box.addView(bottom);
-        pill = box;
-        pillParams = new WindowManager.LayoutParams(
-            WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT,
-            overlayType(), WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
-            PixelFormat.TRANSLUCENT);
-        pillParams.gravity = Gravity.TOP | Gravity.LEFT;
-        pillParams.x = 8; pillParams.y = 70;
-        box.setOnTouchListener(new View.OnTouchListener() {
-            float sx, sy; int ox, oy;
-            public boolean onTouch(View v, MotionEvent e) {
-                if (e.getAction() == MotionEvent.ACTION_DOWN) {
-                    sx=e.getRawX(); sy=e.getRawY(); ox=pillParams.x; oy=pillParams.y; return true;
-                }
-                if (e.getAction() == MotionEvent.ACTION_UP) {
-                    if (Math.abs(e.getRawX()-sx)<8 && Math.abs(e.getRawY()-sy)<8) togglePanel();
-                    return true;
-                }
-                if (e.getAction() == MotionEvent.ACTION_MOVE) {
-                    pillParams.x=ox+(int)(e.getRawX()-sx); pillParams.y=oy+(int)(e.getRawY()-sy);
-                    wm.updateViewLayout(pill,pillParams); return true;
-                }
-                return true;
-            }
-        });
-        wm.addView(pill, pillParams);
-    }
-    private void togglePanel() {
-        if (expanded) {
-            if (panel != null) {
-                try { wm.removeView(panel); } catch (Exception ignored) {}
-                panel = null;
-            }
-            expanded = false;
-            return;
-        }
+        pill = new LinearLayout(this);
+        pill.setOrientation(LinearLayout.VERTICAL);
+        pill.setBackground(bg(0xF019191C, 0xFF37343E, 12));
+        pillTop = label("", 11, Color.WHITE);
+        pillBottom = label("|  External", 10, 0xFFC8B6FF);
+        pill.addView(pillTop);
+        pill.addView(pillBottom);
 
-        final int accent = 0xFFC8B6FF;
-        final int surface = 0xFF222228;
-        final int selectedColor = 0xFF42365C;
-        final int border = 0xFF494452;
-
-        LinearLayout root = new LinearLayout(this);
-        root.setOrientation(LinearLayout.VERTICAL);
-        root.setPadding(16, 14, 16, 14);
-        root.setBackground(bg(0xF0141419, border));
-
-        TextView title = label("ϟ  TOFFU EXTERNAL", 18);
-        title.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
-        title.setTextColor(accent);
-        root.addView(title);
-
-        TextView subtitle = label("МАТРЁШКА RP  •  OVERLAY", 10);
-        subtitle.setTextColor(0xFFAAA5B5);
-        root.addView(subtitle);
-
-        View divider = new View(this);
-        divider.setBackgroundColor(0xFF38343F);
-        LinearLayout.LayoutParams dividerLp =
-            new LinearLayout.LayoutParams(-1, 1);
-        dividerLp.topMargin = 10;
-        dividerLp.bottomMargin = 10;
-        root.addView(divider, dividerLp);
-
-        TextView section = label("ВЫБЕРИТЕ РАЗДЕЛ", 10);
-        section.setTextColor(0xFFAAA5B5);
-        root.addView(section);
-
-        final TextView status = label("Выберите категорию меню", 12);
-        status.setTextColor(accent);
-        status.setPadding(4, 12, 4, 12);
-        root.addView(status);
-
-        final String[] categories = {
-            "Combat", "AimBot", "World", "Misc", "Configs"
-        };
-        final TextView[] buttons = new TextView[categories.length];
-        final int[] active = {-1};
-
-        for (int i = 0; i < categories.length; i++) {
-            final int index = i;
-            TextView row = label("◇    " + categories[i], 14);
-            row.setBackground(bg(surface, border));
-            row.setPadding(14, 12, 14, 12);
-            row.setClickable(true);
-            row.setFocusable(true);
-
-            LinearLayout.LayoutParams lp =
-                new LinearLayout.LayoutParams(-1, -2);
-            lp.topMargin = 5;
-            root.addView(row, lp);
-            buttons[i] = row;
-
-            row.setOnClickListener(v -> {
-                active[0] = index;
-                for (int j = 0; j < buttons.length; j++) {
-                    buttons[j].setBackground(bg(
-                        j == index ? selectedColor : surface,
-                        j == index ? accent : border
-                    ));
-                    buttons[j].setText(
-                        (j == index ? "◆    " : "◇    ") + categories[j]
-                    );
-                    buttons[j].setTextColor(j == index ? accent : Color.WHITE);
-                }
-                status.setText(categories[index] + "  •  раздел выбран");
-            });
-        }
-
-        TextView note = label(
-            "Элементы меню демонстрационные — игровые функции не подключены.",
-            10
-        );
-        note.setTextColor(0xFFAAA5B5);
-        note.setPadding(4, 12, 4, 8);
-        root.addView(note);
-
-        TextView close = label("⌄   СВЕРНУТЬ МЕНЮ", 12);
-        close.setGravity(Gravity.CENTER);
-        close.setTextColor(Color.WHITE);
-        close.setBackground(bg(0xFF30283D, accent));
-        close.setPadding(12, 12, 12, 12);
-        LinearLayout.LayoutParams closeLp =
-            new LinearLayout.LayoutParams(-1, -2);
-        closeLp.topMargin = 8;
-        root.addView(close, closeLp);
-        close.setOnClickListener(v -> togglePanel());
-
-        panel = root;
-        panelParams = new WindowManager.LayoutParams(
-            (int)(getResources().getDisplayMetrics().widthPixels * .86),
+        pillLp = new WindowManager.LayoutParams(
+            WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.WRAP_CONTENT,
             overlayType(),
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
-            PixelFormat.TRANSLUCENT
-        );
-        panelParams.gravity = Gravity.CENTER;
-        panelParams.x = 0;
-        panelParams.y = 0;
+            PixelFormat.TRANSLUCENT);
+        pillLp.gravity = Gravity.TOP | Gravity.START;
+        pillLp.x = dp(8);
+        pillLp.y = dp(70);
 
-        root.setOnTouchListener(new View.OnTouchListener() {
-            float sx, sy;
-            int ox, oy;
+        applySizeViews();
+        updateClock();
 
-            @Override
-            public boolean onTouch(View v, MotionEvent e) {
-                if (e.getAction() == MotionEvent.ACTION_DOWN) {
-                    sx = e.getRawX();
-                    sy = e.getRawY();
-                    ox = panelParams.x;
-                    oy = panelParams.y;
-                    return true;
-                }
-                if (e.getAction() == MotionEvent.ACTION_MOVE) {
-                    panelParams.x = ox + (int)(e.getRawX() - sx);
-                    panelParams.y = oy + (int)(e.getRawY() - sy);
-                    try {
-                        wm.updateViewLayout(panel, panelParams);
-                    } catch (Exception ignored) {}
-                    return true;
+        pill.setOnTouchListener(new View.OnTouchListener() {
+            float sx, sy; int ox, oy; boolean moved;
+            @Override public boolean onTouch(View v, MotionEvent e) {
+                switch (e.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        sx = e.getRawX(); sy = e.getRawY();
+                        ox = pillLp.x; oy = pillLp.y; moved = false;
+                        return true;
+                    case MotionEvent.ACTION_MOVE:
+                        float dx = e.getRawX() - sx, dy = e.getRawY() - sy;
+                        if (Math.abs(dx) > dp(6) || Math.abs(dy) > dp(6)) moved = true;
+                        if (moved) {
+                            pillLp.x = ox + (int) dx;
+                            pillLp.y = oy + (int) dy;
+                            try { wm.updateViewLayout(pill, pillLp); } catch (Exception ignored) {}
+                        }
+                        return true;
+                    case MotionEvent.ACTION_UP:
+                        if (!moved) togglePanel();
+                        return true;
                 }
                 return false;
             }
         });
-
-        wm.addView(panel, panelParams);
-        expanded = true;
+        wm.addView(pill, pillLp);
     }
 
+    private void applySizeViews() {
+        float s = scale();
+        pillTop.setTextSize(11f * s);
+        pillBottom.setTextSize(10f * s);
+        int ph = dp(10 * s), pv = dp(6 * s);
+        pillTop.setPadding(ph, pv, ph, 0);
+        pillBottom.setPadding(ph, 0, ph, pv);
+    }
+
+    private void applySize() {
+        if (pill == null) return;
+        applySizeViews();
+        try { wm.updateViewLayout(pill, pillLp); } catch (Exception ignored) {}
+    }
+
+    private void applyAlpha() {
+        if (panel != null) panel.setBackground(bg(panelBg(), 0xFF343438, 16));
+    }
+
+    private void updateClock() {
+        if (pillTop == null) return;
+        pillTop.setText("ϟ Toffu  |  Матрёшка РП  |  ◷ "
+            + new SimpleDateFormat("HH:mm", Locale.getDefault()).format(new Date()));
+    }
+
+    /* ---------- меню ---------- */
+    private void togglePanel() {
+        if (panel != null) closePanel(); else openPanel();
+    }
+
+    private void closePanel() {
+        if (panel != null && wm != null) {
+            try { wm.removeView(panel); } catch (Exception ignored) {}
+        }
+        panel = null;
+        content = null;
+    }
+
+    private void makeDraggable(View handle, final WindowManager.LayoutParams lp, final View target) {
+        handle.setOnTouchListener(new View.OnTouchListener() {
+            float sx, sy; int ox, oy;
+            @Override public boolean onTouch(View v, MotionEvent e) {
+                switch (e.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        sx = e.getRawX(); sy = e.getRawY(); ox = lp.x; oy = lp.y;
+                        return true;
+                    case MotionEvent.ACTION_MOVE:
+                        lp.x = ox + (int) (e.getRawX() - sx);
+                        lp.y = oy + (int) (e.getRawY() - sy);
+                        try { wm.updateViewLayout(target, lp); } catch (Exception ignored) {}
+                        return true;
+                }
+                return false;
+            }
+        });
+    }
+
+    private void openPanel() {
+        LinearLayout root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setPadding(dp(12), dp(10), dp(12), dp(12));
+        root.setBackground(bg(panelBg(), 0xFF343438, 16));
+
+        LinearLayout head = new LinearLayout(this);
+        head.setOrientation(LinearLayout.HORIZONTAL);
+        head.setGravity(Gravity.CENTER_VERTICAL);
+        TextView title = label("Toffu External", 16, Color.WHITE);
+        title.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        head.addView(title, new LinearLayout.LayoutParams(0, -2, 1f));
+        TextView x = label("✕", 16, 0xFF9A9A9F);
+        x.setPadding(dp(14), dp(6), dp(4), dp(6));
+        x.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) { closePanel(); }
+        });
+        head.addView(x);
+        root.addView(head);
+
+        LinearLayout tabs = new LinearLayout(this);
+        tabs.setOrientation(LinearLayout.HORIZONTAL);
+        for (int i = 0; i < 4; i++) {
+            final String n = tabNames[i];
+            TextView t = label(n, 12, 0xFF8A8A8F);
+            t.setGravity(Gravity.CENTER);
+            t.setPadding(0, dp(8), 0, dp(8));
+            t.setOnClickListener(new View.OnClickListener() {
+                @Override public void onClick(View v) { tab = n; renderTab(); }
+            });
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, -2, 1f);
+            lp.leftMargin = dp(2); lp.rightMargin = dp(2);
+            tabs.addView(t, lp);
+            tabViews[i] = t;
+        }
+        LinearLayout.LayoutParams tp = new LinearLayout.LayoutParams(-1, -2);
+        tp.topMargin = dp(8);
+        root.addView(tabs, tp);
+
+        ScrollView sv = new ScrollView(this);
+        content = new LinearLayout(this);
+        content.setOrientation(LinearLayout.VERTICAL);
+        sv.addView(content);
+        int maxH = (int) (getResources().getDisplayMetrics().heightPixels * 0.45f);
+        LinearLayout.LayoutParams svLp = new LinearLayout.LayoutParams(-1, maxH);
+        svLp.topMargin = dp(6);
+        root.addView(sv, svLp);
+
+        int w = Math.min(dp(380), (int) (getResources().getDisplayMetrics().widthPixels * 0.9f));
+        panelLp = new WindowManager.LayoutParams(
+            w, WindowManager.LayoutParams.WRAP_CONTENT,
+            overlayType(),
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+            PixelFormat.TRANSLUCENT);
+        panelLp.gravity = Gravity.CENTER;
+
+        makeDraggable(head, panelLp, root);
+        panel = root;
+        renderTab();
+        try { wm.addView(panel, panelLp); } catch (Exception e) { panel = null; content = null; }
+    }
+
+    private void add(View v) {
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-1, -2);
+        lp.topMargin = dp(6);
+        content.addView(v, lp);
+    }
+
+    private void renderTab() {
+        if (content == null) return;
+        for (int i = 0; i < 4; i++) {
+            boolean on = tabNames[i].equals(tab);
+            tabViews[i].setTextColor(on ? ACCENT : 0xFF8A8A8F);
+            tabViews[i].setBackground(on ? bg(0xFF2B3A31, 0xFF3B4A42, 10) : bg(0x00000000, 0x00000000, 10));
+        }
+        content.removeAllViews();
+        if (tab.equals("Combat")) {
+            for (String s : new String[]{"Aim assist", "Triggerbot", "No recoil", "No spread", "FOV-круг"}) add(toggleRow(s));
+        } else if (tab.equals("World")) {
+            for (String s : new String[]{"ESP игроки", "Радар", "Fullbright", "Без тумана", "ТП по метке"}) add(toggleRow(s));
+        } else if (tab.equals("Misc")) {
+            add(toggleRow("Анти-AFK"));
+            add(toggleRow("Анти-кик"));
+            add(sliderRow("Размер плашки", 60, 160, "pill_size", 100, new Runnable() {
+                @Override public void run() { applySize(); }
+            }));
+            add(sliderRow("Прозрачность меню", 40, 100, "menu_alpha", 94, new Runnable() {
+                @Override public void run() { applyAlpha(); }
+            }));
+            add(buttonRow("Остановить оверлей", new Runnable() {
+                @Override public void run() { stopSelf(); }
+            }));
+        } else {
+            String cfg = sp.getString("cfg", "");
+            TextView t = label("Активный конфиг:  " + (cfg.isEmpty() ? "не выбран" : cfg), 13, Color.WHITE);
+            t.setPadding(dp(12), dp(12), dp(12), dp(12));
+            t.setBackground(bg(0xFF222226, 0xFF343438, 10));
+            add(t);
+            add(buttonRow("Сбросить переключатели", new Runnable() {
+                @Override public void run() {
+                    SharedPreferences.Editor ed = sp.edit();
+                    for (String k : sp.getAll().keySet()) if (k.startsWith("t_")) ed.remove(k);
+                    ed.apply();
+                    renderTab();
+                }
+            }));
+        }
+    }
+
+    private View toggleRow(String name) {
+        LinearLayout r = new LinearLayout(this);
+        r.setOrientation(LinearLayout.HORIZONTAL);
+        r.setGravity(Gravity.CENTER_VERTICAL);
+        r.setPadding(dp(12), dp(10), dp(12), dp(10));
+        r.setBackground(bg(0xFF222226, 0xFF343438, 10));
+        r.addView(label(name, 13, Color.WHITE), new LinearLayout.LayoutParams(0, -2, 1f));
+
+        final FrameLayout track = new FrameLayout(this);
+        final View knob = new View(this);
+        track.addView(knob);
+        r.addView(track, new LinearLayout.LayoutParams(dp(40), dp(22)));
+
+        final String key = "t_" + name;
+        paintToggle(track, knob, sp.getBoolean(key, false));
+        r.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) {
+                boolean n = !sp.getBoolean(key, false);
+                sp.edit().putBoolean(key, n).apply();
+                paintToggle(track, knob, n);
+            }
+        });
+        return r;
+    }
+
+    private void paintToggle(FrameLayout track, View knob, boolean on) {
+        track.setBackground(bg(on ? 0xFF3B4A42 : 0xFF2A2A2C, on ? 0xFF3B4A42 : 0xFF3A3A3E, 11));
+        GradientDrawable k = new GradientDrawable();
+        k.setShape(GradientDrawable.OVAL);
+        k.setColor(on ? ACCENT : 0xFF8A8A8A);
+        knob.setBackground(k);
+        FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(dp(16), dp(16));
+        lp.gravity = (on ? Gravity.END : Gravity.START) | Gravity.CENTER_VERTICAL;
+        lp.leftMargin = dp(3); lp.rightMargin = dp(3);
+        knob.setLayoutParams(lp);
+    }
+
+    private View sliderRow(String name, final int min, int max, final String key, int def, final Runnable onChange) {
+        LinearLayout r = new LinearLayout(this);
+        r.setOrientation(LinearLayout.VERTICAL);
+        r.setPadding(dp(12), dp(10), dp(12), dp(8));
+        r.setBackground(bg(0xFF222226, 0xFF343438, 10));
+        LinearLayout top = new LinearLayout(this);
+        top.setOrientation(LinearLayout.HORIZONTAL);
+        top.addView(label(name, 13, Color.WHITE), new LinearLayout.LayoutParams(0, -2, 1f));
+        final TextView val = label("", 12, ACCENT);
+        top.addView(val);
+        r.addView(top);
+
+        SeekBar sb = new SeekBar(this);
+        sb.setMax(max - min);
+        int cur = Math.max(min, Math.min(max, sp.getInt(key, def)));
+        sb.setProgress(cur - min);
+        val.setText(cur + "%");
+        if (Build.VERSION.SDK_INT >= 21) {
+            sb.setProgressTintList(ColorStateList.valueOf(ACCENT));
+            sb.setThumbTintList(ColorStateList.valueOf(ACCENT));
+        }
+        sb.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override public void onProgressChanged(SeekBar s, int p, boolean fromUser) {
+                int v = min + p;
+                val.setText(v + "%");
+                if (fromUser) { sp.edit().putInt(key, v).apply(); onChange.run(); }
+            }
+            @Override public void onStartTrackingTouch(SeekBar s) {}
+            @Override public void onStopTrackingTouch(SeekBar s) {}
+        });
+        r.addView(sb, new LinearLayout.LayoutParams(-1, -2));
+        return r;
+    }
+
+    private View buttonRow(String text, final Runnable action) {
+        TextView b = label(text, 13, ACCENT);
+        b.setGravity(Gravity.CENTER);
+        b.setPadding(dp(12), dp(11), dp(12), dp(11));
+        b.setBackground(bg(0xFF2B3A31, 0xFF3B4A42, 10));
+        b.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) { action.run(); }
+        });
+        return b;
+    }
+
+    /* ---------- жизненный цикл ---------- */
     @Override public int onStartCommand(Intent intent, int flags, int startId) {
-        applyOverlaySettings(intent);
+        if (wm == null || pill == null) return START_NOT_STICKY;
+        if (intent != null && "refresh".equals(intent.getAction())) {
+            applySize();
+            applyAlpha();
+            if (panel != null && "Configs".equals(tab)) renderTab();
+        }
         return START_STICKY;
     }
+
     @Override public void onDestroy() {
-        if (panel != null) { try { wm.removeView(panel); } catch(Exception ignored) {} }
-        if (pill != null) { try { wm.removeView(pill); } catch(Exception ignored) {} }
+        running = false;
+        h.removeCallbacks(tick);
+        closePanel();
+        if (pill != null && wm != null) {
+            try { wm.removeView(pill); } catch (Exception ignored) {}
+        }
+        pill = null;
         super.onDestroy();
     }
+
     @Override public IBinder onBind(Intent intent) { return null; }
 }

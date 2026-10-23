@@ -26,6 +26,7 @@ public class MainActivity extends Activity {
         web.setWebViewClient(new WebViewClient());
         web.setWebChromeClient(new WebChromeClient());
         web.addJavascriptInterface(new Bridge(), "ToffuNative");
+        web.addJavascriptInterface(new ToffuPill(MainActivity.this), "ToffuPill");
         setContentView(web);
         web.loadUrl("file:///android_asset/index.html");
     }

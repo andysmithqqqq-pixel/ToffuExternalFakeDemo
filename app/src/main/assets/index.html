@@ -258,4 +258,65 @@ window.nativeResume=()=>{deviceInfo()};
   </div>
 </div>
 
+<script>
+/*TOFFU_PATCH*/
+(function(){
+var st=document.createElement('style');
+st.textContent='#tdlg{position:fixed;left:0;top:0;right:0;bottom:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.55);z-index:99999;padding:20px}#tdlg .tbox{width:100%;max-width:320px;background:#171718;border:1px solid #2a2a2c;border-radius:16px;padding:20px;color:#d6d6d6;font:15px system-ui,sans-serif}#tdlg .tt{font-weight:700;font-size:16px;margin-bottom:12px}#tdlg input{width:100%;background:#0f0f10;border:1px solid #2a2a2c;border-radius:10px;color:#d6d6d6;font:inherit;padding:10px 12px;outline:0;margin-bottom:14px}#tdlg .trow{display:flex;gap:8px}#tdlg button{flex:1;padding:10px;border-radius:10px;border:1px solid #2c2c2f;background:#1d1d1f;color:#d6d6d6;font:inherit}#tdlg button.tok{background:#a8d5ba;color:#14201a;border:0;font-weight:600}';
+document.head.appendChild(st);
+var ov=document.createElement('div');ov.id='tdlg';
+ov.innerHTML='<div class="tbox"><div class="tt" id="tdt"></div><input id="tdi" maxlength="40" autocomplete="off"><div class="trow"><button id="tdc">Отмена</button><button id="tdo" class="tok">ОК</button></div></div>';
+document.body.appendChild(ov);
+
+function askText(title,def,cb){
+  var i=document.getElementById('tdi'),ok=document.getElementById('tdo'),cn=document.getElementById('tdc');
+  document.getElementById('tdt').textContent=title;
+  i.value=def||'';ov.style.display='flex';
+  setTimeout(function(){i.focus();i.select();},60);
+  function done(v){ov.style.display='none';ok.onclick=cn.onclick=i.onkeydown=null;if(v&&v.trim())cb(v.trim());}
+  ok.onclick=function(){done(i.value);};
+  cn.onclick=function(){done(null);};
+  i.onkeydown=function(e){if(e.key==='Enter')done(i.value);};
+}
+function pill(fn,a){try{if(window.ToffuPill)window.ToffuPill[fn](a);}catch(e){}}
+
+window.drawCfgs=function(){
+  var box=$('#cfglist');box.innerHTML='';
+  cfgs.forEach(function(c,i){
+    var row=document.createElement('div');row.className='cfgrow';
+    var n=document.createElement('span');n.textContent=c.name+(i===selected?' ✓':'');
+    n.onclick=function(){selected=i;$('#selectedCfg').textContent=c.name;pill('setConfig',c.name);window.drawCfgs();};
+    var rn=document.createElement('button');rn.textContent='Имя';
+    rn.onclick=function(){askText('Имя конфига',c.name,function(v){c.name=v;persist();if(selected===i){$('#selectedCfg').textContent=v;pill('setConfig',v);}window.drawCfgs();});};
+    var dl=document.createElement('button');dl.textContent='×';
+    dl.onclick=function(){cfgs.splice(i,1);if(selected===i){selected=-1;$('#selectedCfg').textContent='нет';pill('setConfig','');}else if(selected>i)selected--;persist();window.drawCfgs();};
+    row.append(n,rn,dl);box.append(row);
+  });
+  if(!cfgs.length)box.textContent='Нет конфигов';
+};
+
+$('#newcfg').onclick=function(){
+  askText('Название конфига','',function(name){
+    cfgs.push({name:name,data:JSON.stringify({created:new Date().toISOString(),settings:settings})});
+    selected=cfgs.length-1;
+    persist();
+    $('#selectedCfg').textContent=name;
+    pill('setConfig',name);
+    window.drawCfgs();
+  });
+};
+
+$('#pillsize').oninput=function(){
+  settings.pillsize=+this.value;persist();pill('setPillSize',settings.pillsize);
+};
+var oldReset=$('#reset').onclick;
+$('#reset').onclick=function(){
+  if(oldReset)oldReset.apply(this,arguments);
+  pill('setPillSize',100);
+};
+pill('setPillSize',settings.pillsize);
+window.drawCfgs();
+})();
+
+</script>
 </body></html>
