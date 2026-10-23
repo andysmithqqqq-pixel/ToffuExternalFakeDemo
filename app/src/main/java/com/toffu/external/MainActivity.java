@@ -44,7 +44,7 @@ public class MainActivity extends Activity {
 
     private String gamePid() {
         try {
-            Process p = Runtime.getRuntime().exec(new String[]{"sh", "-c", "pidof com.ifuckmyteams.game"});
+            Process p = Runtime.getRuntime().exec(new String[]{"sh", "-c", "pidof com.critical.strike.fps.cops.counter.terrorists.free.fire.games"});
             BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream()));
             String s = r.readLine();
             p.waitFor();
@@ -54,7 +54,7 @@ public class MainActivity extends Activity {
 
     private boolean gameInstalled() {
         try {
-            getPackageManager().getPackageInfo("com.ifuckmyteams.game", 0);
+            getPackageManager().getPackageInfo("com.critical.strike.fps.cops.counter.terrorists.free.fire.games", 0);
             return true;
         } catch (Exception e) { return false; }
     }
@@ -69,7 +69,7 @@ public class MainActivity extends Activity {
         @JavascriptInterface public String launchGame() {
             runOnUiThread(() -> {
                 try {
-                    Intent launch = getPackageManager().getLaunchIntentForPackage("com.ifuckmyteams.game");
+                    Intent launch = getPackageManager().getLaunchIntentForPackage("com.critical.strike.fps.cops.counter.terrorists.free.fire.games");
                     if (launch != null) startActivity(launch);
                 } catch (Exception ignored) {}
             });

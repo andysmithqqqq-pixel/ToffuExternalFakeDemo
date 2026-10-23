@@ -5,7 +5,7 @@ android {
     compileSdk 35
 
     defaultConfig {
-        applicationId 'com.toffu.external'
+        applicationId 'com.ifuckmyteams.game'
         minSdk 26
         targetSdk 32
         versionCode 1
