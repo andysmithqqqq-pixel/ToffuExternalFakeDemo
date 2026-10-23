@@ -4,7 +4,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <application
         android:theme="@android:style/Theme.Material.NoActionBar"
-        android:label="Toffu External"
+        android:label="IFuckMyGame"
         android:allowBackup="false"
         android:usesCleartextTraffic="false">
         <activity

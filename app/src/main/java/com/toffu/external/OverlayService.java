@@ -156,7 +156,7 @@ public class OverlayService extends Service {
 
     private void updateClock() {
         if (pillTop == null) return;
-        pillTop.setText("ϟ Toffu  |  Матрёшка РП  |  ◷ "
+        pillTop.setText("ϟ IFuckMyGame  |  Counter Terrorist  |  ◷ "
             + new SimpleDateFormat("HH:mm", Locale.getDefault()).format(new Date()));
     }
 
@@ -201,7 +201,7 @@ public class OverlayService extends Service {
         LinearLayout head = new LinearLayout(this);
         head.setOrientation(LinearLayout.HORIZONTAL);
         head.setGravity(Gravity.CENTER_VERTICAL);
-        TextView title = label("Toffu External", 16, Color.WHITE);
+        TextView title = label("IFuckMyGame", 16, Color.WHITE);
         title.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
         head.addView(title, new LinearLayout.LayoutParams(0, -2, 1f));
         TextView x = label("✕", 16, 0xFF9A9A9F);
@@ -269,12 +269,14 @@ public class OverlayService extends Service {
         }
         content.removeAllViews();
         if (tab.equals("Combat")) {
-            for (String s : new String[]{"Aim assist", "Triggerbot", "No recoil", "No spread", "FOV-круг"}) add(toggleRow(s));
+            for (String s : new String[]{"Mini AimHelper", "Mini MoreDamage"}) add(toggleRow(s));
         } else if (tab.equals("World")) {
-            for (String s : new String[]{"ESP игроки", "Радар", "Fullbright", "Без тумана", "ТП по метке"}) add(toggleRow(s));
+            for (String s : new String[]{"Mini MoveHelper", "Mini DetectHelper"}) add(toggleRow(s));
         } else if (tab.equals("Misc")) {
-            add(toggleRow("Анти-AFK"));
-            add(toggleRow("Анти-кик"));
+            add(toggleRow("Ultimate grenades"));
+            add(toggleRow("Ultimate RPG"));
+            add(toggleRow("Mini BunnyHop"));
+            add(toggleRow("Mini Helper"));
             add(sliderRow("Размер плашки", 60, 160, "pill_size", 100, new Runnable() {
                 @Override public void run() { applySize(); }
             }));
