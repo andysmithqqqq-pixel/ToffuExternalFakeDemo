@@ -156,7 +156,7 @@ public class OverlayService extends Service {
 
     private void updateClock() {
         if (pillTop == null) return;
-        pillTop.setText("ϟ IFuckMyGame  |  Counter Terrorist  |  ◷ "
+        pillTop.setText("ϟ Storm  |  Grand Criminal Online  |  ◷ "
             + new SimpleDateFormat("HH:mm", Locale.getDefault()).format(new Date()));
     }
 
@@ -201,7 +201,7 @@ public class OverlayService extends Service {
         LinearLayout head = new LinearLayout(this);
         head.setOrientation(LinearLayout.HORIZONTAL);
         head.setGravity(Gravity.CENTER_VERTICAL);
-        TextView title = label("IFuckMyGame", 16, Color.WHITE);
+        TextView title = label("Storm External", 16, Color.WHITE);
         title.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
         head.addView(title, new LinearLayout.LayoutParams(0, -2, 1f));
         TextView x = label("✕", 16, 0xFF9A9A9F);
@@ -269,14 +269,20 @@ public class OverlayService extends Service {
         }
         content.removeAllViews();
         if (tab.equals("Combat")) {
-            for (String s : new String[]{"Mini AimHelper", "Mini MoreDamage"}) add(toggleRow(s));
+            for (String s : new String[]{"Fly", "NoClip", "Speed x2", "Speed x5", "High Jump", "No Gravity", "Teleport to Spawn", "Walk on Water", "Instant Respawn", "Ghost Mode"}) add(toggleRow(s));
         } else if (tab.equals("World")) {
             for (String s : new String[]{"Mini MoveHelper", "Mini DetectHelper"}) add(toggleRow(s));
         } else if (tab.equals("Misc")) {
-            add(toggleRow("Ultimate grenades"));
-            add(toggleRow("Ultimate RPG"));
-            add(toggleRow("Mini BunnyHop"));
-            add(toggleRow("Mini Helper"));
+            add(toggleRow("God Mode"));
+            add(toggleRow("Inf. Health"));
+            add(toggleRow("Inf. Armor"));
+            add(toggleRow("Inf. Money"));
+            add(toggleRow("Inf. GC"));
+            add(toggleRow("Inf. XP"));
+            add(toggleRow("Give Money"));
+            add(toggleRow("Give Level"));
+            add(toggleRow("Anti-AFK"));
+            add(toggleRow("Anti-Kick"));
             add(sliderRow("Размер плашки", 60, 160, "pill_size", 100, new Runnable() {
                 @Override public void run() { applySize(); }
             }));
