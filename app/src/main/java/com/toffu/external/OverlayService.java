@@ -269,30 +269,34 @@ public class OverlayService extends Service {
         }
         content.removeAllViews();
         if (tab.equals("Combat")) {
-            for (String s : new String[]{"Fly", "NoClip", "Speed x2", "Speed x5", "High Jump", "No Gravity", "Teleport to Spawn", "Walk on Water", "Instant Respawn", "Ghost Mode"}) add(toggleRow(s));
-        } else if (tab.equals("World")) {
+            add(toggleRowExpand("AimBot", new String[]{"Дистанция", "Плавность", "FOV"}, new int[]{300, 5, 60}, new int[]{10, 1, 10}, new String[]{"м", "", "°"}));
+            add(toggleRow("No Recoil"));
+            add(toggleRow("Rapid Fire"));
+            add(toggleRow("No Spread"));
+            add(toggleRow("Silent Aim"));
+            add(toggleRow("Wide Bullet"));
+            add(toggleRow("Fast Bullet"));
+            add(toggleRow("Infinite Ammo"));
+            add(toggleRow("No Reload"));
+            add(buttonRow("Kill All Players", new Runnable() { @Override public void run() { toast("Kill All: отправлено"); } }));
+            add(buttonRow("Explode All Cars", new Runnable() { @Override public void run() { toast("Explode: отправлено"); } }));
+            add(sliderRow("Damage multiplier", 1, 10, "dmg_mult", 1, new Runnable() { @Override public void run() {} }));} else if (tab.equals("World")) {
             for (String s : new String[]{"Mini MoveHelper", "Mini DetectHelper"}) add(toggleRow(s));
         } else if (tab.equals("Misc")) {
             add(toggleRow("God Mode"));
-            add(toggleRow("Inf. Health"));
-            add(toggleRow("Inf. Armor"));
-            add(toggleRow("Inf. Money"));
-            add(toggleRow("Inf. GC"));
-            add(toggleRow("Inf. XP"));
-            add(toggleRow("Give Money"));
-            add(toggleRow("Give Level"));
+            add(toggleRow("Infinite Health"));
+            add(toggleRow("Infinite Armor"));
+            add(toggleRow("Infinite Energy"));
             add(toggleRow("Anti-AFK"));
             add(toggleRow("Anti-Kick"));
-            add(sliderRow("Размер плашки", 60, 160, "pill_size", 100, new Runnable() {
-                @Override public void run() { applySize(); }
-            }));
-            add(sliderRow("Прозрачность меню", 40, 100, "menu_alpha", 94, new Runnable() {
-                @Override public void run() { applyAlpha(); }
-            }));
-            add(buttonRow("Остановить оверлей", new Runnable() {
-                @Override public void run() { stopSelf(); }
-            }));
-        } else {
+            add(toggleRow("Mini BunnyHop"));
+            add(buttonRow("Give Money", new Runnable() { @Override public void run() { showGiveDialog("money"); } }));
+            add(buttonRow("Give GC", new Runnable() { @Override public void run() { showGiveDialog("gc"); } }));
+            add(buttonRow("Give XP", new Runnable() { @Override public void run() { showGiveDialog("xp"); } }));
+            add(buttonRow("Give Level", new Runnable() { @Override public void run() { showGiveDialog("level"); } }));
+            add(sliderRow("Размер плашки", 60, 160, "pill_size", 100, new Runnable() { @Override public void run() { applySize(); } }));
+            add(sliderRow("Прозрачность меню", 40, 100, "menu_alpha", 94, new Runnable() { @Override public void run() { applyAlpha(); } }));
+            add(buttonRow("Остановить оверлей", new Runnable() { @Override public void run() { stopSelf(); } }));} else {
             String cfg = sp.getString("cfg", "");
             TextView t = label("Активный конфиг:  " + (cfg.isEmpty() ? "не выбран" : cfg), 13, Color.WHITE);
             t.setPadding(dp(12), dp(12), dp(12), dp(12));
